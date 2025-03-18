@@ -19,6 +19,7 @@ import WebKit
 // MARK: - Public API
 
 public typealias DownViewClosure = () -> Void
+public typealias DownViewOpenURLClosure = (URL) -> Void
 
 open class DownView: WKWebView {
 
@@ -39,6 +40,9 @@ open class DownView: WKWebView {
     ///
     /// - Throws:
     ///     `DownErrors` depending on the scenario.
+    ///
+    
+    private var customOpenURL: DownViewOpenURLClosure? = nil
 
     public init(frame: CGRect,
                 markdownString: String,
@@ -47,11 +51,13 @@ open class DownView: WKWebView {
                 writableBundle: Bool = false,
                 configuration: WKWebViewConfiguration? = nil,
                 options: DownOptions = .default,
+                customOpenURL: DownViewClosure? = nil,
                 didLoadSuccessfully: DownViewClosure? = nil) throws {
 
         self.options = options
         self.didLoadSuccessfully = didLoadSuccessfully
         self.writableBundle = writableBundle
+        self.customOpenURL = customOpenURL
 
         if let templateBundle = templateBundle {
             self.bundle = templateBundle
@@ -243,11 +249,19 @@ extension DownView: WKNavigationDelegate {
 
     @available(iOSApplicationExtension, unavailable)
     func openURL(url: URL) {
+        if let customOpenURL = customOpenURL {
+            customOpenURL(url)
+        } else {
         #if os(iOS)
-            _ = UIApplication.shared.openURL(url)
+            if #available(iOS 10.0, *) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            } else {
+                UIApplication.shared.openURL(url)
+            }
         #elseif os(macOS)
             NSWorkspace.shared.open(url)
         #endif
+        }
     }
 
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
