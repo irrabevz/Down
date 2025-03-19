@@ -51,7 +51,7 @@ open class DownView: WKWebView {
                 writableBundle: Bool = false,
                 configuration: WKWebViewConfiguration? = nil,
                 options: DownOptions = .default,
-                customOpenURL: DownViewClosure? = nil,
+                customOpenURL: DownViewOpenURLClosure? = nil,
                 didLoadSuccessfully: DownViewClosure? = nil) throws {
 
         self.options = options
